@@ -11,42 +11,56 @@ db = SQLAlchemy(metadata=metadata)
 
 class Pizza(db.Model, SerializerMixin):
     __tablename__ = 'pizzas'
-    serialization_rules = ('-restaurants.pizza', '-restaurant_pizzas.restaurant')
+    serialization_rules = ('-restaurant_pizzas.pizza',)
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    ingredients = db.Column(db.String)
+    name = db.Column(db.String, nullable=False)
+    ingredients = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     restaurant_pizzas = db.relationship('RestaurantPizza', back_populates='pizza')
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "ingredients": self.ingredients,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at
+        }
 
 class Restaurant(db.Model, SerializerMixin):
     __tablename__ = 'restaurants'
-    serialization_rules = ('-pizzas.restaurant', '-restaurant_pizzas.pizza')
+    serialization_rules = ('-restaurant_pizzas.restaurant',)
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    address = db.Column(db.String)
+    name = db.Column(db.String, nullable=False)
+    address = db.Column(db.String, nullable=False)
 
     restaurant_pizzas = db.relationship('RestaurantPizza', back_populates='restaurant')
 
     @validates('name')
     def validate_name(self, key, name):
-        if name and len(name) > 50:
+        if not name or len(name) > 50:
             raise ValueError("Name must be less than 50 characters in length")
         return name
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "address": self.address
+        }
 
 class RestaurantPizza(db.Model, SerializerMixin):
     __tablename__ = 'restaurant_pizzas'
     serialization_rules = ('restaurant', 'pizza')
 
     id = db.Column(db.Integer, primary_key=True)
-    pizza_id = db.Column(db.Integer, db.ForeignKey('pizzas.id'))
-    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
-    price = db.Column(db.Integer)
+    pizza_id = db.Column(db.Integer, db.ForeignKey('pizzas.id'), nullable=False)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
@@ -59,3 +73,12 @@ class RestaurantPizza(db.Model, SerializerMixin):
             raise ValueError("Price must be between 1 and 30")
         return value
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "pizza_id": self.pizza_id,
+            "restaurant_id": self.restaurant_id,
+            "price": self.price,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at
+        }
