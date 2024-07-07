@@ -26,8 +26,8 @@ class Pizza(db.Model, SerializerMixin):
             "id": self.id,
             "name": self.name,
             "ingredients": self.ingredients,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }
 
 class Restaurant(db.Model, SerializerMixin):
@@ -35,7 +35,7 @@ class Restaurant(db.Model, SerializerMixin):
     serialization_rules = ('-restaurant_pizzas.restaurant',)
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String(50), nullable=False)  # Adjusted max length for name
     address = db.Column(db.String, nullable=False)
 
     restaurant_pizzas = db.relationship('RestaurantPizza', back_populates='restaurant')
@@ -43,7 +43,7 @@ class Restaurant(db.Model, SerializerMixin):
     @validates('name')
     def validate_name(self, key, name):
         if not name or len(name) > 50:
-            raise ValueError("Name must be less than 50 characters in length")
+            raise ValueError("Name must be less than or equal to 50 characters")
         return name
 
     def to_dict(self):
@@ -72,3 +72,4 @@ class RestaurantPizza(db.Model, SerializerMixin):
         if not (1 <= value <= 30):
             raise ValueError("Price must be between 1 and 30")
         return value
+

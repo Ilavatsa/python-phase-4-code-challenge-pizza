@@ -42,11 +42,19 @@ def get_restaurant(restaurant_id):
         if restaurant is None:
             return jsonify({'error': 'Restaurant not found'}), 404
 
-        pizzas = [{'id': p.id, 'name': p.name, 'ingredients': p.ingredients} for p in restaurant.pizzas]
-        return jsonify({'id': restaurant.id, 'name': restaurant.name, 'address': restaurant.address, 'pizzas': pizzas})
+        # Access the related pizzas via the RestaurantPizza model
+        pizzas = [{'id': rp.pizza.id, 'name': rp.pizza.name, 'ingredients': rp.pizza.ingredients} for rp in restaurant.restaurant_pizzas]
+
+        return jsonify({
+            'id': restaurant.id,
+            'name': restaurant.name,
+            'address': restaurant.address,
+            'pizzas': pizzas
+        }), 200
     except Exception as e:
         app.logger.error(f"Error fetching restaurant: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @app.route('/restaurants/<int:restaurant_id>', methods=['DELETE'])
 def delete_restaurant(restaurant_id):
@@ -88,7 +96,22 @@ def create_restaurant_pizza():
     db.session.add(restaurant_pizza)
     db.session.commit()
 
-    return jsonify({'id': pizza.id, 'name': pizza.name, 'ingredients': pizza.ingredients}), 201
+    return jsonify({
+        'id': restaurant_pizza.id,
+        'price': restaurant_pizza.price,
+        'pizza_id': restaurant_pizza.pizza.id,
+        'restaurant_id': restaurant_pizza.restaurant.id,
+        'pizza': {
+            'id': pizza.id,
+            'name': pizza.name,
+            'ingredients': pizza.ingredients
+        },
+        'restaurant': {
+            'id': restaurant.id,
+            'name': restaurant.name,
+            'address': restaurant.address
+        }
+    }), 201
 
 if __name__ == '__main__':
     app.run(debug=True)
@@ -97,6 +120,56 @@ if __name__ == '__main__':
 
 
 
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+  
 
 
 
