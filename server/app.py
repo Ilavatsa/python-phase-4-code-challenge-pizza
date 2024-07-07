@@ -24,43 +24,31 @@ def index():
 
 @app.route("/restaurants", methods=["GET"])
 def get_restaurants():
-    try:
-        restaurants = Restaurant.query.all()
-        return jsonify([restaurant.to_dict() for restaurant in restaurants]), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    restaurants = Restaurant.query.all()
+    return jsonify([restaurant.to_dict() for restaurant in restaurants]), 200
 
 @app.route("/restaurants/<int:id>", methods=["GET"])
 def get_restaurant(id):
-    try:
-        restaurant = Restaurant.query.get(id)
-        if restaurant:
-            return jsonify(restaurant.to_dict()), 200
-        else:
-            return jsonify({"error": "Restaurant not found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    restaurant = Restaurant.query.get(id)
+    if restaurant:
+        return jsonify(restaurant.to_dict()), 200
+    else:
+        return jsonify({"error": "Restaurant not found"}), 404
 
 @app.route("/restaurants/<int:id>", methods=["DELETE"])
 def delete_restaurant(id):
-    try:
-        restaurant = Restaurant.query.get(id)
-        if restaurant:
-            db.session.delete(restaurant)
-            db.session.commit()
-            return '', 204
-        else:
-            return jsonify({"error": "Restaurant not found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    restaurant = Restaurant.query.get(id)
+    if restaurant:
+        db.session.delete(restaurant)
+        db.session.commit()
+        return '', 204
+    else:
+        return jsonify({"error": "Restaurant not found"}), 404
 
 @app.route("/pizzas", methods=["GET"])
 def get_pizzas():
-    try:
-        pizzas = Pizza.query.all()
-        return jsonify([pizza.to_dict() for pizza in pizzas]), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    pizzas = Pizza.query.all()
+    return jsonify([pizza.to_dict() for pizza in pizzas]), 200
 
 @app.route("/restaurant_pizzas", methods=["POST"])
 def create_restaurant_pizza():
@@ -69,19 +57,18 @@ def create_restaurant_pizza():
         pizza_id = data["pizza_id"]
         restaurant_id = data["restaurant_id"]
         price = data["price"]
-        
+
         if price < 1 or price > 30:
             return jsonify({"error": "Price must be between 1 and 30"}), 400
-        
+
         restaurant_pizza = RestaurantPizza(pizza_id=pizza_id, restaurant_id=restaurant_id, price=price)
         db.session.add(restaurant_pizza)
         db.session.commit()
-        
+
         return jsonify(restaurant_pizza.to_dict()), 201
-    except KeyError as e:
-        return jsonify({"error": f"Missing key: {e.args[0]}"}), 400
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
 
 @app.errorhandler(404)
 def not_found_error(error):

@@ -72,4 +72,3 @@ class RestaurantPizza(db.Model, SerializerMixin):
         if not (1 <= value <= 30):
             raise ValueError("Price must be between 1 and 30")
         return value
-
