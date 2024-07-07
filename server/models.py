@@ -73,13 +73,3 @@ class RestaurantPizza(db.Model, SerializerMixin):
             raise ValueError("Price must be between 1 and 30")
         return value
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "pizza_id": self.pizza_id,
-            "restaurant_id": self.restaurant_id,
-            "price": self.price,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at
-        }
-
